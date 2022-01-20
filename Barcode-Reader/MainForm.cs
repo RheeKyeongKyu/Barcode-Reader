@@ -1,7 +1,7 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Drawing;
 using System.IO;
-using System.Threading;
 using System.Windows.Forms;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
@@ -13,8 +13,7 @@ namespace Barcode_Reader
     {
         // Declare class-level variables for webcam operations
         VideoCapture capture;
-        Mat frame;
-        private Thread camera;
+        private BackgroundWorker workerCamera;
         bool isWebcamRunning = false;
         Bitmap image;
 
@@ -89,6 +88,7 @@ namespace Barcode_Reader
                 startRecordingToolStripMenuItem.Enabled = true;
                 stopRecordingToolStripMenuItem.Enabled = false;
 
+                workerCamera.CancelAsync();
                 ReleaseCamera();
                 DisposePictureBoxAndSetImage();
             }
@@ -102,8 +102,59 @@ namespace Barcode_Reader
                 startRecordingToolStripMenuItem.Enabled = false;
                 stopRecordingToolStripMenuItem.Enabled = true;
 
-                camera = new Thread(new ThreadStart(CaptureCameraCallback));
-                camera.Start();
+                capture = new VideoCapture();
+                capture.Open(index: 0);
+                if (!capture.IsOpened())
+                {
+                    return;
+                }
+
+                workerCamera = new BackgroundWorker();
+                workerCamera.WorkerReportsProgress = true;
+                workerCamera.WorkerSupportsCancellation = true;
+
+                workerCamera.DoWork += new DoWorkEventHandler(Worker_DoWork);
+
+                workerCamera.ProgressChanged += new ProgressChangedEventHandler(Worker_ProgressChanged);
+                workerCamera.RunWorkerCompleted += new RunWorkerCompletedEventHandler(Worker_RunWorkerCompleted);
+
+                // Start Worker Thread
+                workerCamera.RunWorkerAsync();
+            }
+        }
+
+
+        private void Worker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            //while (!workerCamera.CancellationPending)
+            while (true)
+            {
+                using (Mat frame = capture.RetrieveMat())
+                {
+                    if (workerCamera.CancellationPending)
+                    {
+                        e.Cancel = true;
+                        return;
+                    }
+
+                    // Process image for retrieving barcode region and show it in PictureBox
+                    //frame = GetBarcodeRegion(frame);
+                    image = BitmapConverter.ToBitmap(frame);
+                    workerCamera.ReportProgress(percentProgress: 0, userState: image);
+                }
+            }
+        }
+
+        private void Worker_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            DisposePictureBoxAndSetImage(image: (Bitmap)e.UserState);
+        }
+
+        private void Worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            if (e.Cancelled)
+            {
+                DisposePictureBoxAndSetImage();
             }
         }
 
@@ -111,12 +162,7 @@ namespace Barcode_Reader
         {
             try
             {
-                if (capture != null && frame != null && camera != null)
-                {
-                    capture.Release();
-                    frame.Release();
-                    camera.Abort();
-                }
+                capture?.Dispose();
             }
             catch (Exception ex)
             {
@@ -124,35 +170,10 @@ namespace Barcode_Reader
             }
         }
 
-        private void CaptureCameraCallback()
-        {
-            frame = new Mat();
-            capture = new VideoCapture(index: 0);
-            capture.Open(index: 0);
-
-            if (capture.IsOpened())
-            {
-                while (isWebcamRunning)
-                {
-                    capture.Read(image: frame);
-
-                    // Process image for retrieving barcode region and show it in PictureBox
-                    //frame = GetBarcodeRegion(frame);
-                    image = BitmapConverter.ToBitmap(frame);
-
-                    DisposePictureBoxAndSetImage(image);
-                }
-            }
-        }
-
         private void DisposePictureBoxAndSetImage(Bitmap image = null)
         {
-            // Dispose PictureBox and set Image
-            if (pb_ImageWebcam.Image != null)
-            {
-                pb_ImageWebcam.Image.Dispose();
-            }
-
+            // Dispose PictureBox if it's not null then set Image
+            pb_ImageWebcam.Image?.Dispose();
             pb_ImageWebcam.Image = image;
         }
 

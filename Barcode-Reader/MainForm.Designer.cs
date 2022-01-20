@@ -81,7 +81,6 @@
             // 
             // openImageToolStripMenuItem
             // 
-            this.openImageToolStripMenuItem.Enabled = false;
             this.openImageToolStripMenuItem.Name = "openImageToolStripMenuItem";
             this.openImageToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.openImageToolStripMenuItem.Text = "Open Image";
@@ -119,7 +118,7 @@
             // 
             this.stopRecordingToolStripMenuItem.Enabled = false;
             this.stopRecordingToolStripMenuItem.Name = "stopRecordingToolStripMenuItem";
-            this.stopRecordingToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.stopRecordingToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
             this.stopRecordingToolStripMenuItem.Text = "Stop Recording";
             this.stopRecordingToolStripMenuItem.Click += new System.EventHandler(this.StopRecordingToolStripMenuItem_Click);
             // 
