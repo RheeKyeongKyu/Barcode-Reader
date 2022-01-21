@@ -147,14 +147,19 @@ namespace Barcode_Reader
 
         private void Worker_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-            DisposePictureBoxAndSetImage(image: (Bitmap)e.UserState);
+            // Do not update PictureBox when BackgroundWorker is in Cancellation
+            if (!workerCamera.CancellationPending)
+            {
+                DisposePictureBoxAndSetImage(image: (Bitmap)e.UserState);
+            }
         }
 
         private void Worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             if (e.Cancelled)
             {
-                DisposePictureBoxAndSetImage();
+                // Commented code below because disposing of PictureBox is already done in the Main Thread
+                //DisposePictureBoxAndSetImage();
             }
         }
 
