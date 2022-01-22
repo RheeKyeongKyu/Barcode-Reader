@@ -43,11 +43,7 @@ namespace Barcode_Reader
                 StopRecording();
 
                 // Process image for retrieving barcode region and show it in PictureBox
-                //frame = GetBarcodeRegion(new Mat(imageFile));
-                //image = BitmapConverter.ToBitmap(frame);
-
-                image = new Bitmap(imageFile);
-
+                image = BitmapConverter.ToBitmap(ImageProcessing.GetBarcodeRegion(mat: new Mat(imageFile), region: out Rect region, debug: true));
                 DisposePictureBoxAndSetImage(image);
             }
         }
@@ -126,7 +122,6 @@ namespace Barcode_Reader
 
         private void Worker_DoWork(object sender, DoWorkEventArgs e)
         {
-            //while (!workerCamera.CancellationPending)
             while (true)
             {
                 using (Mat frame = capture.RetrieveMat())
@@ -138,8 +133,7 @@ namespace Barcode_Reader
                     }
 
                     // Process image for retrieving barcode region and show it in PictureBox
-                    //frame = GetBarcodeRegion(frame);
-                    image = BitmapConverter.ToBitmap(frame);
+                    image = BitmapConverter.ToBitmap(ImageProcessing.GetBarcodeRegion(mat: frame, region: out Rect region, debug: true));
                     workerCamera.ReportProgress(percentProgress: 0, userState: image);
                 }
             }
