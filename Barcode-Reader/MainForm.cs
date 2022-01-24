@@ -122,7 +122,7 @@ namespace Barcode_Reader
 
         private void Worker_DoWork(object sender, DoWorkEventArgs e)
         {
-            while (true)
+            while (capture != null)
             {
                 using (Mat frame = capture.RetrieveMat())
                 {
