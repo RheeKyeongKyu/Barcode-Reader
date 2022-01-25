@@ -1,6 +1,9 @@
 ﻿using OpenCvSharp;
+using OpenCvSharp.Extensions;
 using System;
 using System.Linq;
+using ZXing;
+using ZXing.Common;
 
 namespace Barcode_Reader
 {
@@ -14,6 +17,8 @@ namespace Barcode_Reader
             // Create output Mat
             Mat result = new Mat();
 
+            // Barcode region candidate
+            Rect barcodeRectCandidate = new Rect();
 
             using (Mat gray = new Mat())
             using (Mat gradX = new Mat())
@@ -54,7 +59,7 @@ namespace Barcode_Reader
 
                 if (debug)
                 {
-                    //threshold.CopyTo(result);
+                    //thresholded.CopyTo(result);
                 }
 
                 // 4. Construct a closing kernel and apply it to the thresholded image
@@ -84,10 +89,31 @@ namespace Barcode_Reader
                     // Sort contour area by Linq method
                     // Contour with the largest area is stored in the first index
                     contours = contours.OrderByDescending(x => Cv2.ContourArea(x)).ToArray();
-                    region = Cv2.BoundingRect(curve: contours[0]);
+                    barcodeRectCandidate = Cv2.BoundingRect(curve: contours[0]);
 
-                    Cv2.Rectangle(img: mat, rect: region, color: new Scalar(0, 0, 255), thickness: 3);
-
+                    // Crop the barcode area from the grayscaled image and clone it
+                    using (Mat barcodeRegion = new Mat(m: gray, roi: barcodeRectCandidate))
+                    using (Mat barcodeRegionClone = barcodeRegion.Clone())
+                    
+                    // 6. Add Whitespace around barcode
+                    using (Mat barcodeRegionFinal = GetBarcodeContainer(barcodeRegion: barcodeRegionClone, border: 15))
+                    {
+                        // 7. Recognize the barcode using ZXing library
+                        if (DecodeBarCode(barcodeCandidate: barcodeRegionFinal.ToBitmap(),
+                                        barcodeFormat: out string barcodeFormat,
+                                        barcodeText: out string barcodeText))
+                        {
+                            // Draw green rectangle around barcode region and show recognized barcode text above the green box
+                            Cv2.Rectangle(img: mat, rect: barcodeRectCandidate, color: new Scalar(0, 255, 0), thickness: 3);
+                            Cv2.PutText(img: mat, text: $"{barcodeText} ({barcodeFormat})", org: new Point(barcodeRectCandidate.Left, barcodeRectCandidate.Top), fontFace: HersheyFonts.HersheyPlain, fontScale: 3, color: new Scalar(0, 255, 0), thickness: 3);
+                            region = barcodeRectCandidate;
+                        }
+                        else
+                        {
+                            // Draw red rectangle around barcode region candidate
+                            Cv2.Rectangle(img: mat, rect: barcodeRectCandidate, color: new Scalar(0, 0, 255), thickness: 3);
+                        }
+                    }
                 }
                 mat.CopyTo(result);
             }
@@ -95,5 +121,57 @@ namespace Barcode_Reader
             return result;
         }
 
+        // Decode barcode using ZXing library
+        private static bool DecodeBarCode(System.Drawing.Bitmap barcodeCandidate, out string barcodeFormat, out string barcodeText)
+        {
+            barcodeFormat = string.Empty;
+            barcodeText = string.Empty;
+
+            bool barcodeFound = false;
+
+            try
+            {
+                LuminanceSource source = new BitmapLuminanceSource(barcodeCandidate);
+                BarcodeReader reader = new BarcodeReader(reader: null, createLuminanceSource: null, createBinarizer: ls => new GlobalHistogramBinarizer(ls))
+                {
+                    AutoRotate = true,
+                    Options = new DecodingOptions
+                    {
+                        TryHarder = true
+                        //,TryInverted = true  // Commented because of IndexOutOfRangeException in reader.Decode(source)
+                    }
+                };
+
+                Result result = reader.Decode(source);
+
+                // Successfully decoded
+                if (result != null)
+                {
+                    barcodeFormat = result.BarcodeFormat.ToString();
+                    barcodeText = result.Text;
+                    barcodeFound = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+
+            return barcodeFound;
+        }
+
+        // Barcode region is padded in all 4 sides with specifed white pixels
+        private static Mat GetBarcodeContainer(Mat barcodeRegion, int border)
+        {
+            // ZXing.Net requires white space around the barcode
+            Mat barcodeContainer = new Mat(size: new Size(barcodeRegion.Width + (border * 2), barcodeRegion.Height + (border * 2)), type: MatType.CV_8U, s: Scalar.White);
+            Rect barcodeRect = new Rect(location: new Point(border, border), size: new Size(barcodeRegion.Width, barcodeRegion.Height));
+            using (Mat roi = barcodeContainer[barcodeRect])
+            {
+                barcodeRegion.CopyTo(roi);
+            }
+
+            return barcodeContainer;
+        }
     }
 }
