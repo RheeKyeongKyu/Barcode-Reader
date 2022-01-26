@@ -9,10 +9,17 @@ namespace Barcode_Reader
 {
     public static class ImageProcessing
     {
-        public static Mat GetBarcodeRegion(Mat mat, out Rect region, bool debug)
+        public static Mat GetBarcodeRegion(Mat mat, out Rect region, 
+                                                    out bool barcodeFound, 
+                                                    out System.Drawing.Bitmap barcodeImage, 
+                                                    out System.Drawing.Bitmap barcodeDecodeResult, 
+                                                    bool debug)
         {
-            // Assign region variable
+            // Assign value to out parameters
             region = new Rect();
+            barcodeFound = false;
+            barcodeImage = null;
+            barcodeDecodeResult = null;
 
             // Create output Mat
             Mat result = new Mat();
@@ -91,22 +98,33 @@ namespace Barcode_Reader
                     contours = contours.OrderByDescending(x => Cv2.ContourArea(x)).ToArray();
                     barcodeRectCandidate = Cv2.BoundingRect(curve: contours[0]);
 
-                    // Crop the barcode area from the grayscaled image and clone it
+                    // Crop the barcode area from the grayscaled image
                     using (Mat barcodeRegion = new Mat(m: gray, roi: barcodeRectCandidate))
-                    using (Mat barcodeRegionClone = barcodeRegion.Clone())
                     
                     // 6. Add Whitespace around barcode
-                    using (Mat barcodeRegionFinal = GetBarcodeContainer(barcodeRegion: barcodeRegionClone, border: 15))
+                    using (Mat barcodeRegionFinal = GetBarcodeContainer(barcodeRegion: barcodeRegion, border: 15))
                     {
                         // 7. Recognize the barcode using ZXing library
                         if (DecodeBarCode(barcodeCandidate: barcodeRegionFinal.ToBitmap(),
-                                        barcodeFormat: out string barcodeFormat,
-                                        barcodeText: out string barcodeText))
+                                        result: out Result decodeResult))
                         {
                             // Draw green rectangle around barcode region and show recognized barcode text above the green box
                             Cv2.Rectangle(img: mat, rect: barcodeRectCandidate, color: new Scalar(0, 255, 0), thickness: 3);
-                            Cv2.PutText(img: mat, text: $"{barcodeText} ({barcodeFormat})", org: new Point(barcodeRectCandidate.Left, barcodeRectCandidate.Top), fontFace: HersheyFonts.HersheyPlain, fontScale: 3, color: new Scalar(0, 255, 0), thickness: 3);
+                            Cv2.PutText(img: mat, text: $"{decodeResult.Text} ({decodeResult.BarcodeFormat})", org: new Point(barcodeRectCandidate.Left, barcodeRectCandidate.Top), fontFace: HersheyFonts.HersheyPlain, fontScale: 3, color: new Scalar(0, 255, 0), thickness: 3);
+
+                            // Render barcode
+                            BarcodeWriter writer = new BarcodeWriter
+                            {
+                                Format = decodeResult.BarcodeFormat,
+                                Options = { Width = 400, Height = 100, Margin = 4 },
+                                Renderer = new ZXing.Rendering.BitmapRenderer()
+                            };
+
+                            // reassign value to out parameters
                             region = barcodeRectCandidate;
+                            barcodeFound = true;
+                            barcodeImage = barcodeRegion.ToBitmap();
+                            barcodeDecodeResult = writer.Write(decodeResult.Text);
                         }
                         else
                         {
@@ -122,10 +140,9 @@ namespace Barcode_Reader
         }
 
         // Decode barcode using ZXing library
-        private static bool DecodeBarCode(System.Drawing.Bitmap barcodeCandidate, out string barcodeFormat, out string barcodeText)
+        private static bool DecodeBarCode(System.Drawing.Bitmap barcodeCandidate, out Result result)
         {
-            barcodeFormat = string.Empty;
-            barcodeText = string.Empty;
+            result = null;
 
             bool barcodeFound = false;
 
@@ -142,13 +159,11 @@ namespace Barcode_Reader
                     }
                 };
 
-                Result result = reader.Decode(source);
+                result = reader.Decode(source);
 
                 // Successfully decoded
                 if (result != null)
                 {
-                    barcodeFormat = result.BarcodeFormat.ToString();
-                    barcodeText = result.Text;
                     barcodeFound = true;
                 }
             }
