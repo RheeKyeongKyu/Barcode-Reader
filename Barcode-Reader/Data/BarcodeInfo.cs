@@ -5,13 +5,15 @@ namespace Barcode_Reader
 {
     public class BarcodeInfo
     {
+        public Bitmap ProcessedImage { get; set; } = null;
         public Rect Rect { get; set; } = new Rect();
         public bool BarcodeFound { get; set; } = false;
         public Bitmap BarcodeImage { get; set; } = null;
         public Bitmap BarcodeDecodeResult { get; set; } = null;
 
-        public BarcodeInfo(Rect rect, bool barcodeFound, Bitmap barcodeImage, Bitmap barcodeDecodeResult)
+        public BarcodeInfo(Bitmap processedImage, Rect rect, bool barcodeFound, Bitmap barcodeImage, Bitmap barcodeDecodeResult)
         {
+            ProcessedImage = processedImage;
             Rect = rect;
             BarcodeFound = barcodeFound;
             BarcodeImage = barcodeImage;

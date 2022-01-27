@@ -39,9 +39,9 @@
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
-            this.pictureBox2 = new System.Windows.Forms.PictureBox();
+            this.pb_barcodeRegion = new System.Windows.Forms.PictureBox();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
-            this.pictureBox3 = new System.Windows.Forms.PictureBox();
+            this.pb_decodeResult = new System.Windows.Forms.PictureBox();
             this.gb_ImageWebcam = new System.Windows.Forms.GroupBox();
             this.pb_ImageWebcam = new System.Windows.Forms.PictureBox();
             this.menuStrip1.SuspendLayout();
@@ -51,9 +51,9 @@
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
             this.groupBox2.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pb_barcodeRegion)).BeginInit();
             this.groupBox3.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox3)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pb_decodeResult)).BeginInit();
             this.gb_ImageWebcam.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pb_ImageWebcam)).BeginInit();
             this.SuspendLayout();
@@ -82,19 +82,19 @@
             // openImageToolStripMenuItem
             // 
             this.openImageToolStripMenuItem.Name = "openImageToolStripMenuItem";
-            this.openImageToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.openImageToolStripMenuItem.Size = new System.Drawing.Size(140, 22);
             this.openImageToolStripMenuItem.Text = "Open Image";
             this.openImageToolStripMenuItem.Click += new System.EventHandler(this.OpenImageToolStripMenuItem_Click);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(177, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(137, 6);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(140, 22);
             this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.ExitToolStripMenuItem_Click);
             // 
@@ -159,7 +159,7 @@
             // 
             // groupBox2
             // 
-            this.groupBox2.Controls.Add(this.pictureBox2);
+            this.groupBox2.Controls.Add(this.pb_barcodeRegion);
             this.groupBox2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.groupBox2.Location = new System.Drawing.Point(0, 0);
             this.groupBox2.Name = "groupBox2";
@@ -168,18 +168,19 @@
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Captured Barcode Region";
             // 
-            // pictureBox2
+            // pb_barcodeRegion
             // 
-            this.pictureBox2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pictureBox2.Location = new System.Drawing.Point(3, 17);
-            this.pictureBox2.Name = "pictureBox2";
-            this.pictureBox2.Size = new System.Drawing.Size(263, 240);
-            this.pictureBox2.TabIndex = 0;
-            this.pictureBox2.TabStop = false;
+            this.pb_barcodeRegion.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pb_barcodeRegion.Location = new System.Drawing.Point(3, 17);
+            this.pb_barcodeRegion.Name = "pb_barcodeRegion";
+            this.pb_barcodeRegion.Size = new System.Drawing.Size(263, 240);
+            this.pb_barcodeRegion.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.pb_barcodeRegion.TabIndex = 0;
+            this.pb_barcodeRegion.TabStop = false;
             // 
             // groupBox3
             // 
-            this.groupBox3.Controls.Add(this.pictureBox3);
+            this.groupBox3.Controls.Add(this.pb_decodeResult);
             this.groupBox3.Dock = System.Windows.Forms.DockStyle.Fill;
             this.groupBox3.Location = new System.Drawing.Point(0, 0);
             this.groupBox3.Name = "groupBox3";
@@ -188,14 +189,15 @@
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Decode Result";
             // 
-            // pictureBox3
+            // pb_decodeResult
             // 
-            this.pictureBox3.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pictureBox3.Location = new System.Drawing.Point(3, 17);
-            this.pictureBox3.Name = "pictureBox3";
-            this.pictureBox3.Size = new System.Drawing.Size(263, 247);
-            this.pictureBox3.TabIndex = 0;
-            this.pictureBox3.TabStop = false;
+            this.pb_decodeResult.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pb_decodeResult.Location = new System.Drawing.Point(3, 17);
+            this.pb_decodeResult.Name = "pb_decodeResult";
+            this.pb_decodeResult.Size = new System.Drawing.Size(263, 247);
+            this.pb_decodeResult.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.pb_decodeResult.TabIndex = 0;
+            this.pb_decodeResult.TabStop = false;
             // 
             // gb_ImageWebcam
             // 
@@ -238,9 +240,9 @@
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
             this.groupBox2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pb_barcodeRegion)).EndInit();
             this.groupBox3.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox3)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pb_decodeResult)).EndInit();
             this.gb_ImageWebcam.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.pb_ImageWebcam)).EndInit();
             this.ResumeLayout(false);
@@ -260,9 +262,9 @@
         private System.Windows.Forms.GroupBox gb_ImageWebcam;
         private System.Windows.Forms.PictureBox pb_ImageWebcam;
         private System.Windows.Forms.GroupBox groupBox2;
-        private System.Windows.Forms.PictureBox pictureBox2;
+        private System.Windows.Forms.PictureBox pb_barcodeRegion;
         private System.Windows.Forms.GroupBox groupBox3;
-        private System.Windows.Forms.PictureBox pictureBox3;
+        private System.Windows.Forms.PictureBox pb_decodeResult;
         private System.Windows.Forms.ToolStripMenuItem webcamToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem startRecordingToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem stopRecordingToolStripMenuItem;

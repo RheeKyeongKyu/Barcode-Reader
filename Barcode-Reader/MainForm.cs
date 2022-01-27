@@ -47,7 +47,12 @@ namespace Barcode_Reader
                                                                                                 barcodeFound: out bool barcodeFound,
                                                                                                 barcodeImage: out Bitmap barcodeImage,
                                                                                                 barcodeDecodeResult: out Bitmap barcodeDecodeResult, debug: true));
-                DisposePictureBoxAndSetImage(image);
+                
+                DisposePictureBoxAndSetImage(barcodeInfo: new BarcodeInfo(processedImage: image,
+                                                                        rect: region,
+                                                                        barcodeFound: barcodeFound,
+                                                                        barcodeImage: barcodeImage,
+                                                                        barcodeDecodeResult: barcodeDecodeResult));
             }
         }
 
@@ -140,7 +145,12 @@ namespace Barcode_Reader
                                                                                                 barcodeFound: out bool barcodeFound,
                                                                                                 barcodeImage: out Bitmap barcodeImage,
                                                                                                 barcodeDecodeResult: out Bitmap barcodeDecodeResult, debug: true));
-                    workerCamera.ReportProgress(percentProgress: 0, userState: image);
+
+                    workerCamera.ReportProgress(percentProgress: 0, userState: new BarcodeInfo(processedImage: image,
+                                                                                            rect: region,
+                                                                                            barcodeFound: barcodeFound,
+                                                                                            barcodeImage: barcodeImage,
+                                                                                            barcodeDecodeResult: barcodeDecodeResult));
                 }
             }
         }
@@ -150,7 +160,8 @@ namespace Barcode_Reader
             // Do not update PictureBox when BackgroundWorker is in Cancellation
             if (!workerCamera.CancellationPending)
             {
-                DisposePictureBoxAndSetImage(image: (Bitmap)e.UserState);
+                BarcodeInfo barcodeInfo = (BarcodeInfo)e.UserState;
+                DisposePictureBoxAndSetImage(barcodeInfo: barcodeInfo);
             }
         }
 
@@ -171,17 +182,30 @@ namespace Barcode_Reader
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error: {ex.ToString()}");
+                Console.WriteLine($"Error: {ex}");
             }
         }
 
-        private void DisposePictureBoxAndSetImage(Bitmap image = null)
+        private void DisposePictureBoxAndSetImage(BarcodeInfo barcodeInfo = null)
         {
             // Dispose PictureBox if it's not null then set Image
             pb_ImageWebcam.Image?.Dispose();
-            pb_ImageWebcam.Image = image;
-        }
+            pb_barcodeRegion.Image?.Dispose();
+            pb_decodeResult.Image?.Dispose();
 
+            if (barcodeInfo != null)
+            {
+                pb_ImageWebcam.Image = barcodeInfo.ProcessedImage;
+                pb_barcodeRegion.Image = barcodeInfo.BarcodeImage;
+                pb_decodeResult.Image = barcodeInfo.BarcodeDecodeResult;
+            }
+            else
+            {
+                pb_ImageWebcam.Image = null;
+                pb_barcodeRegion.Image = null;
+                pb_decodeResult.Image = null;
+            }
+        }
 
     }
 }
