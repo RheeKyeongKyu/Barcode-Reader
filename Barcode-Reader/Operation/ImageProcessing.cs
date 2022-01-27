@@ -9,20 +9,14 @@ namespace Barcode_Reader
 {
     public static class ImageProcessing
     {
-        public static Mat GetBarcodeRegion(Mat mat, out Rect region, 
-                                                    out bool barcodeFound, 
-                                                    out System.Drawing.Bitmap barcodeImage, 
-                                                    out System.Drawing.Bitmap barcodeDecodeResult, 
-                                                    bool debug)
+        public static BarcodeInfo GetBarcodeRegion(Mat input, bool debug = false)
         {
-            // Assign value to out parameters
-            region = new Rect();
-            barcodeFound = false;
-            barcodeImage = null;
-            barcodeDecodeResult = null;
-
-            // Create output Mat
-            Mat result = new Mat();
+            // Assign default values to properties of BarcodeInfo object
+            Mat processedImageMat = new Mat(); // processedImageMat will be converted to Bitmap at the end of method
+            Rect regionRect = new Rect();
+            bool barcodeFound = false;
+            System.Drawing.Bitmap barcodeImage = null;
+            System.Drawing.Bitmap barcodeDecodeResult = null;
 
             // Barcode region candidate
             Rect barcodeRectCandidate = new Rect();
@@ -37,14 +31,14 @@ namespace Barcode_Reader
             using (Mat closed = new Mat())
             {
                 // 1. Convert it to grayscale
-                if (mat.Channels() > 1)
-                    Cv2.CvtColor(src: mat, dst: gray, ColorConversionCodes.BGR2GRAY);
+                if (input.Channels() > 1)
+                    Cv2.CvtColor(src: input, dst: gray, ColorConversionCodes.BGR2GRAY);
                 else
-                    mat.CopyTo(gray);
+                    input.CopyTo(gray);
 
                 if (debug)
                 {
-                    //gray.CopyTo(result);
+                    //gray.CopyTo(processedImageMat);
                 }
 
                 // 2. Compute the Scharr gradient magnitude representation of the image in both X and Y direction
@@ -57,7 +51,7 @@ namespace Barcode_Reader
 
                 if (debug)
                 {
-                    //gradient.CopyTo(result);
+                    //gradient.CopyTo(processedImageMat);
                 }
 
                 // 3. Blur and threshold the image
@@ -66,7 +60,7 @@ namespace Barcode_Reader
 
                 if (debug)
                 {
-                    //thresholded.CopyTo(result);
+                    //thresholded.CopyTo(processedImageMat);
                 }
 
                 // 4. Construct a closing kernel and apply it to the thresholded image
@@ -78,7 +72,7 @@ namespace Barcode_Reader
 
                 if (debug)
                 {
-                    //closed.CopyTo(result);
+                    //closed.CopyTo(processedImageMat);
                 }
 
                 // 5. Find the contours in the thresholded image. Sort the contours by their area
@@ -109,8 +103,8 @@ namespace Barcode_Reader
                                         result: out Result decodeResult))
                         {
                             // Draw green rectangle around barcode region and show recognized barcode text above the green box
-                            Cv2.Rectangle(img: mat, rect: barcodeRectCandidate, color: new Scalar(0, 255, 0), thickness: 3);
-                            Cv2.PutText(img: mat, text: $"{decodeResult.Text} ({decodeResult.BarcodeFormat})", org: new Point(barcodeRectCandidate.Left, barcodeRectCandidate.Top), fontFace: HersheyFonts.HersheyPlain, fontScale: 3, color: new Scalar(0, 255, 0), thickness: 3);
+                            Cv2.Rectangle(img: input, rect: barcodeRectCandidate, color: new Scalar(0, 255, 0), thickness: 3);
+                            Cv2.PutText(img: input, text: $"{decodeResult.Text} ({decodeResult.BarcodeFormat})", org: new Point(barcodeRectCandidate.Left, barcodeRectCandidate.Top), fontFace: HersheyFonts.HersheyPlain, fontScale: 3, color: new Scalar(0, 255, 0), thickness: 3);
 
                             // Render barcode
                             BarcodeWriter writer = new BarcodeWriter
@@ -121,7 +115,7 @@ namespace Barcode_Reader
                             };
 
                             // reassign value to out parameters
-                            region = barcodeRectCandidate;
+                            regionRect = barcodeRectCandidate;
                             barcodeFound = true;
                             barcodeImage = barcodeRegion.ToBitmap();
                             barcodeDecodeResult = writer.Write(decodeResult.Text);
@@ -129,14 +123,18 @@ namespace Barcode_Reader
                         else
                         {
                             // Draw red rectangle around barcode region candidate
-                            Cv2.Rectangle(img: mat, rect: barcodeRectCandidate, color: new Scalar(0, 0, 255), thickness: 3);
+                            Cv2.Rectangle(img: input, rect: barcodeRectCandidate, color: new Scalar(0, 0, 255), thickness: 3);
                         }
                     }
                 }
-                mat.CopyTo(result);
+                input.CopyTo(processedImageMat);
             }
 
-            return result;
+            return new BarcodeInfo(processedImage: processedImageMat.ToBitmap(), 
+                                regionRect: regionRect, 
+                                barcodeFound: barcodeFound, 
+                                barcodeImage: barcodeImage, 
+                                barcodeDecodeResult: barcodeDecodeResult);
         }
 
         // Decode barcode using ZXing library

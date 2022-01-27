@@ -1,10 +1,8 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 using OpenCvSharp;
-using OpenCvSharp.Extensions;
 
 
 namespace Barcode_Reader
@@ -15,7 +13,6 @@ namespace Barcode_Reader
         VideoCapture capture;
         private BackgroundWorker workerCamera;
         bool isWebcamRunning = false;
-        Bitmap image;
 
         public MainForm()
         {
@@ -43,16 +40,8 @@ namespace Barcode_Reader
                 StopRecording();
 
                 // Process image for retrieving barcode region and show it in PictureBox
-                image = BitmapConverter.ToBitmap(ImageProcessing.GetBarcodeRegion(mat: new Mat(imageFile), region: out Rect region,
-                                                                                                barcodeFound: out bool barcodeFound,
-                                                                                                barcodeImage: out Bitmap barcodeImage,
-                                                                                                barcodeDecodeResult: out Bitmap barcodeDecodeResult, debug: true));
-                
-                DisposePictureBoxAndSetImage(barcodeInfo: new BarcodeInfo(processedImage: image,
-                                                                        rect: region,
-                                                                        barcodeFound: barcodeFound,
-                                                                        barcodeImage: barcodeImage,
-                                                                        barcodeDecodeResult: barcodeDecodeResult));
+                BarcodeInfo barcodeInfo = ImageProcessing.GetBarcodeRegion(input: new Mat(imageFile));
+                DisposePictureBoxAndSetImage(barcodeInfo: barcodeInfo);
             }
         }
 
@@ -141,16 +130,14 @@ namespace Barcode_Reader
                     }
 
                     // Process image for retrieving barcode region and show it in PictureBox
-                    image = BitmapConverter.ToBitmap(ImageProcessing.GetBarcodeRegion(mat: frame, region: out Rect region, 
-                                                                                                barcodeFound: out bool barcodeFound,
-                                                                                                barcodeImage: out Bitmap barcodeImage,
-                                                                                                barcodeDecodeResult: out Bitmap barcodeDecodeResult, debug: true));
+                    BarcodeInfo barcodeInfo = ImageProcessing.GetBarcodeRegion(input: frame);
+                    workerCamera.ReportProgress(percentProgress: 0, userState: barcodeInfo);
 
-                    workerCamera.ReportProgress(percentProgress: 0, userState: new BarcodeInfo(processedImage: image,
-                                                                                            rect: region,
-                                                                                            barcodeFound: barcodeFound,
-                                                                                            barcodeImage: barcodeImage,
-                                                                                            barcodeDecodeResult: barcodeDecodeResult));
+                    if (barcodeInfo.BarcodeFound)
+                    {
+                        // Store barcode information in database
+                        //System.Threading.Thread.Sleep(3000);
+                    }
                 }
             }
         }
